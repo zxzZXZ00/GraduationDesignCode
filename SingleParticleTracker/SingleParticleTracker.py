@@ -54,7 +54,7 @@ class SingleParticleTracker:
         fit_frames = []
         for frame in tqdm(frames,desc="滤波去噪：", unit="帧"):
             back_ground = uniform_filter(frame.astype(float), size=2*self.w + 1,mode="constant",cval=0)
-            gaussian_result = gaussian_filter(frame - back_ground, sigma=self.sigma,mode="constant", cval=0)
+            gaussian_result = gaussian_filter(np.maximum(frame - back_ground，0), sigma=self.sigma,mode="constant", cval=0)
             gaussian_result_0 = np.maximum(gaussian_result, 0)
             fit_frames.append(gaussian_result_0)
         fit_frames = np.array(fit_frames)
