@@ -24,6 +24,7 @@ class Draw:
         self.draw_scatter_special_norm_v(tracks,track_tags,order_special)
         self.draw_probability_norm_v(tracks)
         self.draw_density(frames,special,postions)
+        self.long_track(frames,tracks)
         
     def draw_track(self,tracks,frames):
         """
@@ -134,6 +135,21 @@ class Draw:
         print("图像保存中...")
         plt.savefig("probability_norm.png",dpi = self.dpi)
         plt.close()
-
+    def long_track(self,frames,tracks):
+        max_len = 0
+        load_max = 0
+        for i,track in enumerate(tqdm(tracks,desc = "绘制最长单粒子轨迹：",unit="条")):
+            if max_len<len(track) and track[0][1]>100 and track[0][1]<len(frames[0])-100 and track[0][2]>100 and track[0][2]<len(frames[0][0])-100:
+                load_max = i
+                max_len = len(track)
+        x = [x for i,y,x in tracks[load_max]]
+        y = [y for i,y,x in tracks[load_max]]
+        size = 10
+        #print(tracks[load_max][0])
+        frame = frames[tracks[load_max][0][0]][round(tracks[load_max][0][1]-size):round(tracks[load_max][0][1]+size),round(tracks[load_max][0][2]-size):round(tracks[load_max][0][2]+size)]
+        plt.imshow(frame,cmap='gray')
+        plt.plot(np.array(x)-round(tracks[load_max][0][2]-size),np.array(y)-round(tracks[load_max][0][1]-size),linewidth = 0.1)
+        plt.savefig("long_track.png",dpi = self.dpi)
+        plt.close()
     def draw_density(self,frames,special,postions):
         pass
