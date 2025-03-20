@@ -6,6 +6,7 @@ from scipy.ndimage import uniform_filter, gaussian_filter, maximum_filter
 from scipy.optimize import linear_sum_assignment
 from tqdm import tqdm
 from Draw import Draw
+from OneSpecialParticle import OneSpecialParticle
 
 class SingleParticleTracker:
     def __init__(self, w=3, r_percent=0.1, sigma=1.0, Ts=2.0, max_step=100.0,r_particle=2.1):
@@ -31,9 +32,9 @@ class SingleParticleTracker:
         """
         #print(limit)
         if limit is None:
-            y_start = 125
+            y_start = 200
             y_end = 450
-            x_start = 10
+            x_start = 100
             x_end = 700
         else:
             y_start = limit["y_start"]
@@ -258,12 +259,18 @@ class SingleParticleTracker:
         trajectories.extend(cur_trajectories)
         order_special["gred_sum"].extend(tracks_num)
         return trajectories
-    def run(self,file_paths,limit=None):
+    def run(self,file_paths,limit=None,dpi = 400,save_path = "./result/",sample_count = 100):
+        ""
         """
         运行整个跟踪过程
         - file_paths: TIFF文件路径列表
         - limit: 可选的裁剪限制{"y_start":, "y_end":, "x_start":, "x_end":}
+        - dpi: 图像分辨率
+        - save_path: 保存路径
         """
+        if limit is not None:
+            limit = {"y_start":limit[0], "y_end":limit[1], "x_start":limit[2], "x_end":limit[3]}
+
         frames = []# 图像
         postions = []# 粒子点
         special ={} # 特殊粒子点矩阵
@@ -276,9 +283,10 @@ class SingleParticleTracker:
         postions = self.refine_positions(frames,pre_postions)# 精确定位
         special = self.detect_special(frames,postions)# 特殊粒子检测
         tracks = self.link_trajectories(postions,special,track_tags,order_special)# 轨迹链接
-        draw = Draw(dpi=2400)# 轨迹绘制
+        draw = Draw(dpi,save_path,sample_count = sample_count)# 轨迹绘制
         draw.draw_run(tracks = tracks,track_tags=track_tags,order_special = order_special,frames = frames,special = special ,postions = postions)# 轨迹绘制
-        
+        onesspe = OneSpecialParticle(save_path = save_path,frames = pre_frames,dpi = dpi)
+        onesspe.run(tracks,track_tags,order_special)
 
         
     def detect_special_gred_sum(self,frames, postions,sum):
@@ -299,7 +307,7 @@ class SingleParticleTracker:
                 x_min = max(0,round(x - self.w))
                 x_max = min(frame.shape[1], round(x + self.w + 1))
                 patch = frame[y_min:y_max, x_min:x_max]
-                if np.sum(patch) > 800:
+                if np.sum(patch) > 1000:
                     #print(np.sum(patch),i,y,x)
                     gred_special.append(1)
                 else:
@@ -312,12 +320,11 @@ class SingleParticleTracker:
 
 
 
-
-            
-tracker = SingleParticleTracker(w=3, r_percent=0.1, sigma=1.0, Ts=3.0, max_step=2)
-path = []
-for i in range(1,10001):
-    path.append(f"VimbaImage_{i}.tiff")
-tracker.run(path)
+if __name__ == "__main__":        
+    tracker = SingleParticleTracker(w=3, r_percent=0.1, sigma=1.0, Ts=3.0, max_step=2)
+    path = []
+    for i in range(1,11):
+        path.append(f"VimbaImage_{i}.tiff")
+    tracker.run(path)
 
 
