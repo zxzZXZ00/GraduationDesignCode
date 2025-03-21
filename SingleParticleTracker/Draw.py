@@ -264,11 +264,11 @@ class Draw:
             counter_s = np.array(counter_s)/np.sum(counter_s)
         params_s = []
         y_s = self.fit_expx2(x,counter_s,params_s)
-        plt.plot(x_norm,counter_norm/np.sum(counter_norm),alpha = 0.2,color = "green")
+        plt.plot(x_norm,10*counter_norm/np.sum(counter_norm),alpha = 0.2,color = "green")
         plt.plot(x,counter_init/np.sum(counter_init),alpha = 0.2,color = "k")
         plt.plot(x,counter_end/np.sum(counter_end),alpha = 0.2,color = "r")
         plt.plot(x,counter_s/np.sum(counter_s),alpha = 0.2, color = "b")
-        plt.plot(x_norm,y_norm,alpha = 1,linewidth = 1,label=f"All Points:$y = {params_norm[0]:.2f} e^{{-({params_norm[1]:.2f}x-{params_norm[2]:.2f})^2}}$",color = "green")
+        plt.plot(x_norm,10*y_norm,alpha = 1,linewidth = 1,label=f"All Points:$y = {params_norm[0]:.2f} e^{{-({params_norm[1]:.2f}x-{params_norm[2]:.2f})^2}}$",color = "green")
         plt.plot(x_norm,y_init,alpha = 1,linewidth = 1,label=f"Init:$y = {params_init[0]:.2f} e^{{-({params_init[1]:.2f}x-{params_init[2]:.2f})^2}}$",color = "k")
         plt.plot(x_norm,y_end,alpha = 1,linewidth = 1,label=f"End:$y = {params_end[0]:.2f} e^{{-({params_end[1]:.2f}x-{params_end[2]:.2f})^2}}$",color = "r")
         plt.plot(x_norm,y_s,alpha = 1,linewidth = 1,label=f"Process:$y = {params_s[0]:.2f} e^{{-({params_s[1]:.2f}x-{params_s[2]:.2f})^2}}$", color = "b")
@@ -277,7 +277,7 @@ class Draw:
         plt.tick_params(axis='both', direction='in', which='both')
         plt.locator_params(axis='x', nbins=5)  # x轴最多显示5个刻度
         plt.locator_params(axis='y', nbins=5)  # y轴最多显示5个刻度
-        plt.xlabel("$speed$")
+        plt.xlabel("$v_x$")
         plt.ylabel("$probability$")
         plt.legend(framealpha=0)
         plt.savefig(f"{self.save_path}probability_special_v_x.png",dpi=self.dpi,bbox_inches='tight',pad_inches=0,transparent=True)
@@ -341,11 +341,11 @@ class Draw:
         params_s = []
         y_s = self.fit_expx2(x,counter_s,params_s)
    
-        plt.plot(x_norm,counter_norm/np.sum(counter_norm),alpha = 0.2,color = "green")
+        plt.plot(x_norm,10*counter_norm/np.sum(counter_norm),alpha = 0.2,color = "green")
         plt.plot(x,counter_init/np.sum(counter_init),alpha = 0.2,color = "k")
         plt.plot(x,counter_end/np.sum(counter_end),alpha = 0.2,color = "r")
         plt.plot(x,counter_s/np.sum(counter_s),alpha = 0.2, color = "b")
-        plt.plot(x_norm,y_norm,alpha = 1,linewidth = 1,label=f"All Points:$y = {params_norm[0]:.2f} e^{{-({params_norm[1]:.2f}x-{params_norm[2]:.2f})^2}}$",color = "green")
+        plt.plot(x_norm,10*y_norm,alpha = 1,linewidth = 1,label=f"All Points:$y = {params_norm[0]:.2f} e^{{-({params_norm[1]:.2f}x-{params_norm[2]:.2f})^2}}$",color = "green")
         plt.plot(x_norm,y_init,alpha = 1,linewidth = 1,label=f"Init:$y = {params_init[0]:.2f} e^{{-({params_init[1]:.2f}x-{params_init[2]:.2f})^2}}$",color = "k")
         plt.plot(x_norm,y_end,alpha = 1,linewidth = 1,label=f"End:$y = {params_end[0]:.2f} e^{{-({params_end[1]:.2f}x-{params_end[2]:.2f})^2}}$",color = "r")
         plt.plot(x_norm,y_s,alpha = 1,linewidth = 1,label=f"Process:$y = {params_s[0]:.2f} e^{{-({params_s[1]:.2f}x-{params_s[2]:.2f})^2}}$", color = "b")
@@ -354,7 +354,7 @@ class Draw:
         plt.tick_params(axis='both', direction='in', which='both')
         plt.locator_params(axis='x', nbins=5)  # x轴最多显示5个刻度
         plt.locator_params(axis='y', nbins=5)  # y轴最多显示5个刻度
-        plt.xlabel("$speed$")
+        plt.xlabel("$v_y$")
         plt.ylabel("$probability$")
         plt.legend(framealpha=0)
         plt.savefig(f"{self.save_path}probability_special_v_y.png",dpi=self.dpi,bbox_inches='tight',pad_inches=0,transparent=True)
@@ -453,8 +453,12 @@ class Draw:
         """
         x = np.array(x)
         y = np.array(y)
-        params, covariance = curve_fit(model, x, y,p0=p0)
-        a,b,c = params
+        try:
+            params, covariance = curve_fit(model, x, y,p0=p0)
+            a,b,c = params
+        except:
+            a = b =c =0
+        
         param.append(a)
         param.append(b)
         param.append(c)

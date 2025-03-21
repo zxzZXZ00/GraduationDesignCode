@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>气泡筛选</title>
+  <!-- 引入 Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-image: url('https://ts1.tc.mm.bing.net/th/id/R-C.6c0ce748a2d758fe9d9ca327dfcb39c8?rik=eIJS3MbyZ5dziQ&riu=http%3a%2f%2f5b0988e595225.cdn.sohucs.com%2fimages%2f20180202%2f4d34b3a6f69b45dcbc96abddba4f09ab.jpeg&ehk=FXMuLPB0D3U6ObfPlZJ5yQJtZqneYFWOb4Xv3WZxJfc%3d&risl=&pid=ImgRaw&r=0'); /* 替换为你的背景图 */
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+    }
+    .form-container {
+      background: rgba(255, 255, 255, 0.7); /* 半透明背景 */
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+    .form-control {
+      background: rgba(255, 255, 255, 0.2); /* 输入框半透明背景 */
+      border: 1px solid #ced4da;
+      border-radius: 10px;
+      padding: 10px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    .form-control:focus {
+      border-color: #80bdff;
+      box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    }
+    .contact-block {
+      background: rgba(255, 255, 255, 0.7); /* 联系作者区块背景 */
+      padding: 20px;
+      border-radius: 15px;
+      margin-top: 20px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+    .form-column {
+      padding: 0 15px; /* 列之间的间距 */
+    }
+    .folder-input {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .folder-input input[type="text"] {
+      flex: 1;
+    }
+    .input-with-range {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .input-with-range input[type="number"] {
+      width: 100px; /* 缩小输入框宽度 */
+    }
+    .input-with-range input[type="range"] {
+      flex: 1;
+    }
+    .path-toggle {
+      margin-bottom: 10px;
+    }
+    .path-toggle button {
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container mt-5">
+    <div class="form-container">
+      <h1 class="text-center mb-4">气泡筛选</h1>
+      <form id="trackerForm" action="/run_img/" method="POST">
+        <div class="row">
+          <!-- 左列 -->
+          <div class="col-md-6 form-column">
+           
+             <!-- 路径 -->
+             <div class="mb-3">
+              <label class="form-label">路径 (path)</label>
+              <div class="path-toggle">
+                <button type="button" class="btn btn-outline-secondary" id="relativePathBtn">相对路径</button>
+                <button type="button" class="btn btn-outline-secondary" id="absolutePathBtn">绝对路径</button>
+              </div>
+              <div id="relativePathInput" class="folder-input">
+                <input type="text" class="form-control" id="path_relative" name="path" value="./" required>
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('folderPicker').click()">选择文件夹</button>
+                <input type="file" id="folderPicker" webkitdirectory style="display: none;">
+              </div>
+              <div id="absolutePathInput" class="folder-input" style="display: none;">
+                {% csrf_token %}
+                <input type="text" class="form-control" id="path_absolute" name="path" value="./" required>
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('folderPicker').click()">选择文件夹</button>
+                <input type="file" id="folderPicker" webkitdirectory style="display: none;">
+              </div>
+              <div class="form-text">请选择或输入路径。</div>
+            </div>
+            <!-- 光强总和 (light_sum) -->
+            <div class="mb-3">
+              <label for="light_sum" class="form-label">光强总和 (light_sum)</label>
+              <div class="input-with-range">
+                {% csrf_token %}
+                <input type="number" class="form-control" id="light_sum" name="light_sum" value="1600" min="0" max="10000" required>
+                <input type="range" class="form-range" id="light_sum_range" min="0" max="10000" step="1" value="1600">
+              </div>
+              <div class="form-text">用于设置光强总和。</div>
+            </div>
+
+           
+          </div>
+
+          <!-- 右列 -->
+          <div class="col-md-6 form-column">
+            <!-- 保存路径 -->
+            <div class="mb-3">
+              <label class="form-label">保存路径 (savepath)</label>
+              <div class="path-toggle">
+                <button type="button" class="btn btn-outline-secondary" id="relativeSavePathBtn">相对路径</button>
+                <button type="button" class="btn btn-outline-secondary" id="absoluteSavePathBtn">绝对路径</button>
+              </div>
+              <div id="relativeSavePathInput" class="folder-input">
+                {% csrf_token %}
+                <input type="text" class="form-control" id="save_path_relative" name="savepath" value="/result" required>
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('saveFolderPicker').click()">选择文件夹</button>
+                <input type="file" id="saveFolderPicker" webkitdirectory style="display: none;">
+              </div>
+              <div id="absoluteSavePathInput" class="folder-input" style="display: none;">
+                <input type="text" class="form-control" id="save_path_absolute" name="savepath" value="/result" required>
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('saveFolderPicker').click()">选择文件夹</button>
+                <input type="file" id="saveFolderPicker" webkitdirectory style="display: none;">
+              </div>
+              <div class="form-text">请选择或输入保存路径。</div>
+            </div>
+
+            <!-- 限制范围 (limit) -->
+            
+
+            <!-- 大小 (size) -->
+            <div class="mb-3">
+              <label for="size" class="form-label">大小 (size)</label>
+              <div class="input-with-range">
+                {% csrf_token %}
+                <input type="number" class="form-control" id="size" name="size" value="25" min="1" max="100" required>
+                <input type="range" class="form-range" id="size_range" min="1" max="100" step="1" value="25">
+              </div>
+              <div class="form-text">用于设置大小。</div>
+            </div>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label for="limit" class="form-label">限制范围 (limit)</label>
+          <input type="text" class="form-control" id="limit" name="limit" value="[100, 50000, 100, 600]" required>
+          <div class="form-text">请输入一个列表，例如 [100, 100, 600, 450]([y_start,y_end,x_start,x_end])。</div>
+        </div>
+        <!-- 提交按钮 -->
+        <div class="text-center">
+          <button type="submit" class="btn btn-primary btn-lg">运行</button>
+          <div class="form-text">点击运行后请勿重复点击，等待显示运行完成后再次操作</div>
+        </div>
+      </form>
+    </div>
+    <div class="contact-block mt-4">
+      <h3 class="text-center">{{ rlt }}</h3>
+  </div>
+    <!-- 联系作者区块 -->
+    <div class="contact-block mt-4">
+      <h3 class="text-center">联系作者</h3>
+      <p class="text-center">如有问题或建议，请联系：</p>
+      <ul class="list-unstyled text-center">
+        <li>邮箱：<a href="zhangxiangzi@mail.ustc.edu.cn">zhangxiangzi@mail.ustc.edu.cn</a></li>
+        <li>GitHub：<a href="https://github.com/zxzZXZ00">github.com/zxzZXZ00</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 引入 Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // 处理文件夹选择
+    document.getElementById('folderPicker').addEventListener('change', function (event) {
+      const files = event.target.files;
+      if (files.length > 0) {
+        // 获取文件夹路径
+        const folderPath = files[0].webkitRelativePath.split('/')[0];
+        document.getElementById('path_relative').value = folderPath;
+      }
+    });
+
+    document.getElementById('saveFolderPicker').addEventListener('change', function (event) {
+      const files = event.target.files;
+      if (files.length > 0) {
+        // 获取文件夹路径
+        const folderPath = files[0].webkitRelativePath.split('/')[0];
+        document.getElementById('save_path_relative').value = folderPath;
+      }
+    });
+
+    // 同步数字输入框和滑动条的值
+    function syncInputAndRange(inputId, rangeId) {
+      const input = document.getElementById(inputId);
+      const range = document.getElementById(rangeId);
+      input.addEventListener('input', () => range.value = input.value);
+      range.addEventListener('input', () => input.value = range.value);
+    }
+
+    // 绑定所有输入框和滑动条
+    syncInputAndRange('light_sum', 'light_sum_range');
+    syncInputAndRange('size', 'size_range');
+
+    // 切换路径输入方式
+    function togglePathInput(relativeBtnId, absoluteBtnId, relativeInputId, absoluteInputId) {
+      document.getElementById(relativeBtnId).addEventListener('click', function () {
+        document.getElementById(relativeInputId).style.display = 'flex';
+        document.getElementById(absoluteInputId).style.display = 'none';
+        document.getElementById(relativeBtnId).classList.add('active');
+        document.getElementById(absoluteBtnId).classList.remove('active');
+      });
+
+      document.getElementById(absoluteBtnId).addEventListener('click', function () {
+        document.getElementById(relativeInputId).style.display = 'none';
+        document.getElementById(absoluteInputId).style.display = 'flex';
+        document.getElementById(absoluteBtnId).classList.add('active');
+        document.getElementById(relativeBtnId).classList.remove('active');
+      });
+    }
+
+    // 绑定路径和保存路径的切换
+    togglePathInput('relativePathBtn', 'absolutePathBtn', 'relativePathInput', 'absolutePathInput');
+    togglePathInput('relativeSavePathBtn', 'absoluteSavePathBtn', 'relativeSavePathInput', 'absoluteSavePathInput');
+  </script>
+</body>
+</html>
